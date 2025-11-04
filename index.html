@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ai798 Lab — 制造可复制的个人生产力</title>
+
+<!-- Pixel fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#0B0B0E;
+    --panel:#111215;
+    --stroke:#1C1D22;
+    --txt:#E7E8EA;
+    --muted:#A5A8AD;
+    --green:#3AA56A;  /* 生长绿 */
+    --yellow:#F4C230; /* 点火黄 */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--txt);
+    font-family:"VT323", monospace;
+    font-size:20px;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+  }
+  .pixel-h{
+    font-family:"Press Start 2P", system-ui, monospace;
+    letter-spacing:0;
+  }
+  .container{width:92%;max-width:1120px;margin:0 auto}
+  a{color:inherit}
+
+  /* --- Pixel primitives --- */
+  .pixel-card{
+    background:var(--panel);
+    border:4px solid var(--stroke);
+    box-shadow:0 0 0 4px #000, 0 12px 0 0 #000;
+    padding:24px;
+  }
+  .pixel-btn{
+    display:inline-block;
+    padding:14px 18px;
+    background:var(--yellow);
+    color:#111;
+    text-decoration:none;
+    border:4px solid #000;
+    box-shadow:0 6px 0 #000;
+    font-family:"Press Start 2P", monospace;
+    font-size:14px;
+    transition:transform .06s ease-in;
+  }
+  .pixel-btn:active{ transform: translateY(3px); box-shadow:0 3px 0 #000; }
+
+  .chip{
+    display:inline-block;
+    padding:6px 10px;
+    border:4px solid #000;
+    background:#15161A;
+    color:#C7CAD0;
+    font-family:"Press Start 2P", monospace;
+    font-size:10px;
+    letter-spacing:1px;
+  }
+
+  hr.pixel{
+    border:none;
+    height:8px;
+    background:
+      repeating-linear-gradient(90deg, #000 0 8px, #222 8px 16px);
+    margin:40px 0;
+  }
+
+  /* --- Hero full screen --- */
+  .hero{
+    height:100vh;
+    display:flex;align-items:center;
+  }
+  .star{
+    width:10px;height:10px;background:var(--yellow);
+    box-shadow:0 0 16px rgba(244,194,48,.8);
+    animation:pulse 1.8s infinite ease-in-out;
+  }
+  @keyframes pulse{0%{transform:scale(.8);opacity:.5}50%{transform:scale(1.2);opacity:1}100%{transform:scale(.8);opacity:.5}}
+
+  .hero h1{
+    font-size:40px;
+    color:var(--green);
+    margin:10px 0 12px;
+  }
+  .hero p{ margin:0 0 24px; color:#C9CCD2 }
+  .stack{display:flex;flex-direction:column;gap:16px}
+
+  /* Sections */
+  section{padding:80px 0}
+  .section-title{
+    color:var(--green);
+    font-size:18px;
+    margin-bottom:18px;
+  }
+  .grid{
+    display:grid;
+    gap:18px;
+    grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* Feature blocks with pixel icon squares */
+  .feature{
+    display:flex;gap:16px;align-items:flex-start;
+  }
+  .px-icon{
+    width:44px;height:44px;background:#1A1B20;border:4px solid #000;box-shadow:0 6px 0 #000;
+    position:relative;flex:0 0 44px;
+  }
+  .px-icon:after{content:"";position:absolute;left:10px;top:10px;width:8px;height:8px;background:var(--yellow);box-shadow:10px 0 0 var(--yellow), 0 10px 0 var(--yellow);}
+  .muted{color:var(--muted)}
+
+  /* Join panel */
+  .join .pixel-card{display:flex;justify-content:space-between;align-items:center;gap:18px}
+  @media (max-width:840px){ .join .pixel-card{flex-direction:column;align-items:flex-start} }
+</style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="container">
+      <div class="pixel-card">
+        <div class="stack">
+          <div class="chip">ai798 • lab  |  前沿实验 · 生长 · 行动</div>
+          <div class="star"></div>
+          <h1 class="pixel-h">ai798 Lab</h1>
+          <p>一个面向 Z 世代的 AI 先锋组织。<br>我们不旁观未来，我们在现场制造未来。</p>
+          <div class="stack" style="gap:10px">
+            <a class="pixel-btn" href="#lab">进入实验室 →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Module 1: ai798 Lab -->
+  <section id="lab">
+    <div class="container">
+      <h2 class="section-title pixel-h">我们是谁 · ai798 Lab</h2>
+      <div class="pixel-card">
+        <div class="grid">
+          <div class="feature">
+            <div class="px-icon"></div>
+            <div>
+              <h3 class="pixel-h" style="font-size:16px;margin:0 0 8px">前沿实验</h3>
+              <p class="muted">ai798 Lab 是由 Z 世代行动者组成的 AI 前沿实验组织，研究 AI 如何成为个人力量的放大器。</p>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="px-icon"></div>
+            <div>
+              <h3 class="pixel-h" style="font-size:16px;margin:0 0 8px">社群共创</h3>
+              <p class="muted">以内容、作品、产品、事件为表达方式，持续制造可复制的个人生产力模型。</p>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="px-icon"></div>
+            <div>
+              <h3 class="pixel-h" style="font-size:16px;margin:0 0 8px">独立表达</h3>
+              <p class="muted">我们拒绝空谈与依赖，强调自我驱动、结构化、可落地的行动。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr class="pixel">
+    </div>
+  </section>
+
+  <!-- Module 2: Pet Camera App -->
+  <section id="petapp">
+    <div class="container">
+      <h2 class="section-title pixel-h">我们做出的产品 · 宠物 AI 摄影 App</h2>
+      <div class="pixel-card">
+        <div class="grid">
+          <div>
+            <p class="muted">基于实验，我们推出宠物 AI 摄影 App：把普通宠物照片，一键生成可商业使用的电影级影像。它不只是"好玩"，而是 <strong>作品质量 + 可变现能力</strong> 的证明。</p>
+            <div style="margin-top:14px;display:flex;gap:12px;flex-wrap:wrap">
+              <a class="pixel-btn" href="#">查看作品</a>
+              <a class="pixel-btn" style="background:var(--green)" href="#">下载体验</a>
+            </div>
+          </div>
+          <div>
+            <div class="pixel-card" style="background:#0F1013">
+              <p class="muted" style="margin:0">（此处可放一张强样片或视频占位）</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr class="pixel">
+    </div>
+  </section>
+
+  <!-- Module 3: Hackathon -->
+  <section id="hackathon">
+    <div class="container">
+      <h2 class="section-title pixel-h">我们如何持续进化 · ai798 Hackathon</h2>
+      <div class="pixel-card">
+        <div class="grid">
+          <div>
+            <p class="muted">我们定期举办面向 <strong>零代码基础</strong> 的 AI Hackathon。每个成员都在实践中升级自己的版本——不是用记忆，而是用行动理解 AI。</p>
+            <div style="margin-top:14px">
+              <a class="pixel-btn" href="#">下一期报名中 →</a>
+            </div>
+          </div>
+          <div>
+            <div class="pixel-card" style="background:#0F1013">
+              <p class="muted" style="margin:0">（此处可放现场照片或赛题卡片）</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Join -->
+  <section id="join">
+    <div class="container join">
+      <div class="pixel-card">
+        <div>
+          <h3 class="pixel-h" style="font-size:16px;margin:0 0 10px">进入 ai798 Lab</h3>
+          <p class="muted" style="margin:0">成为新一代自我驱动的 AI 行动者。填写你的问题与现状，我们只接收对自己有要求的人。</p>
+        </div>
+        <a class="pixel-btn" href="#">申请进入实验室</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="container" style="padding:40px 0;opacity:.7">
+    <span class="chip">ai798 Lab © 2025</span>
+  </footer>
+</body>
+</html>
+
