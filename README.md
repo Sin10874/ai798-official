@@ -68,6 +68,9 @@ ai798/
 ├── index.html      # 主页面文件
 ├── vercel.json     # Vercel 配置文件
 ├── .gitignore      # Git 忽略文件
+├── 白色ai798.svg   # 网站图标（白色，用于深色背景）
+├── 黑色ai798.svg   # 网站图标（黑色，备用）
+├── deploy.sh       # 一键部署脚本
 └── README.md       # 项目说明
 ```
 
