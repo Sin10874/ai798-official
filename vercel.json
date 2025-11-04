@@ -8,6 +8,14 @@
   ],
   "routes": [
     {
+      "src": "/favicon\\.(svg|ico|png)",
+      "dest": "/favicon.$1"
+    },
+    {
+      "src": "/site\\.webmanifest",
+      "dest": "/site.webmanifest"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
