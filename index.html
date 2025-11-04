@@ -84,6 +84,189 @@
     margin:40px 0;
   }
 
+  /* QR Code Modal */
+  .qr-modal{
+    display:none;
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.85);
+    z-index:9999;
+    padding:20px;
+    overflow-y:auto;
+    animation:fadeIn 0.2s ease-out;
+    -webkit-overflow-scrolling:touch;
+  }
+  .qr-modal.active{display:block}
+
+  @keyframes fadeIn{
+    from{opacity:0}
+    to{opacity:1}
+  }
+
+  @keyframes pixelPop{
+    0%{transform:scale(0.8);opacity:0}
+    60%{transform:scale(1.05)}
+    100%{transform:scale(1);opacity:1}
+  }
+
+  @keyframes slideUp{
+    from{transform:translateY(20px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+  }
+
+  .qr-card{
+    background:var(--panel);
+    border:6px solid var(--yellow);
+    box-shadow:0 0 0 6px #000, 0 16px 0 0 #000, 0 0 40px rgba(244,194,48,0.3);
+    padding:32px;
+    max-width:400px;
+    width:100%;
+    position:absolute;
+    animation:pixelPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin:auto;
+  }
+
+  .qr-close{
+    position:absolute;
+    top:-14px;right:-14px;
+    width:40px;height:40px;
+    background:var(--yellow);
+    border:4px solid #000;
+    box-shadow:0 6px 0 #000;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:"Press Start 2P", monospace;
+    font-size:24px;
+    line-height:1;
+    color:#000;
+    transition:transform 0.1s;
+    user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .qr-close:hover{transform:scale(1.1)}
+  .qr-close:active{transform:translateY(3px);box-shadow:0 3px 0 #000}
+
+  .qr-content{
+    text-align:center;
+  }
+  .qr-content h3{
+    font-family:"Press Start 2P", monospace;
+    font-size:15px;
+    color:var(--green);
+    margin:0 0 10px;
+    letter-spacing:0.5px;
+    line-height:1.6;
+  }
+  .qr-content p{
+    color:var(--muted);
+    font-size:18px;
+    margin:0 0 28px;
+    line-height:1.5;
+  }
+  .qr-image{
+    background:#fff;
+    padding:20px;
+    border:4px solid #000;
+    box-shadow:0 8px 0 #000;
+    display:inline-block;
+  }
+  .qr-image img{
+    display:block;
+    width:240px;
+    height:240px;
+    image-rendering:crisp-edges;
+  }
+
+  /* Tablet */
+  @media (max-width:840px){
+    .qr-card{
+      padding:28px;
+      max-width:90%;
+    }
+    .qr-image{
+      padding:18px;
+    }
+    .qr-image img{
+      width:200px;
+      height:200px;
+    }
+  }
+
+  /* Mobile */
+  @media (max-width:640px){
+    .qr-modal{
+      padding:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .qr-modal.active{display:flex}
+
+    .qr-card{
+      padding:24px 20px;
+      max-width:100%;
+      width:auto;
+      position:relative;
+      border-width:5px;
+      animation:slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .qr-close{
+      top:-12px;right:-12px;
+      width:36px;height:36px;
+      font-size:20px;
+    }
+
+    .qr-content h3{
+      font-size:12px;
+      margin:0 0 8px;
+      line-height:1.8;
+    }
+
+    .qr-content p{
+      font-size:16px;
+      margin:0 0 20px;
+    }
+
+    .qr-image{
+      padding:14px;
+      border-width:3px;
+      box-shadow:0 6px 0 #000;
+    }
+
+    .qr-image img{
+      width:180px;
+      height:180px;
+    }
+  }
+
+  /* Small mobile */
+  @media (max-width:400px){
+    .qr-card{
+      padding:20px 16px;
+    }
+
+    .qr-content h3{
+      font-size:11px;
+    }
+
+    .qr-content p{
+      font-size:15px;
+      margin:0 0 16px;
+    }
+
+    .qr-image{
+      padding:12px;
+    }
+
+    .qr-image img{
+      width:160px;
+      height:160px;
+    }
+  }
+
   /* --- Hero full screen --- */
   .hero{
     height:100vh;
@@ -145,7 +328,7 @@
           <h1 class="pixel-h">ai798 Lab</h1>
           <p>一个面向 Z 世代的 AI 先锋组织。<br>我们不旁观未来，我们在现场制造未来。</p>
           <div class="stack" style="gap:10px">
-            <a class="pixel-btn" href="#lab">进入实验室 →</a>
+            <a class="pixel-btn qr-trigger" href="#" data-qr-title="加入 ai798 Lab" data-qr-desc="扫码添加，进入实验室">进入实验室 →</a>
           </div>
         </div>
       </div>
@@ -218,7 +401,7 @@
           <div>
             <p class="muted">我们定期举办面向 <strong>零代码基础</strong> 的 AI Hackathon。每个成员都在实践中升级自己的版本——不是用记忆，而是用行动理解 AI。</p>
             <div style="margin-top:14px">
-              <a class="pixel-btn" href="#">下一期报名中 →</a>
+              <a class="pixel-btn qr-trigger" href="#" data-qr-title="报名 Hackathon" data-qr-desc="扫码添加，获取下期信息">下一期报名中 →</a>
             </div>
           </div>
           <div>
@@ -239,7 +422,7 @@
           <h3 class="pixel-h" style="font-size:16px;margin:0 0 10px">进入 ai798 Lab</h3>
           <p class="muted" style="margin:0">成为新一代自我驱动的 AI 行动者。填写你的问题与现状，我们只接收对自己有要求的人。</p>
         </div>
-        <a class="pixel-btn" href="#">申请进入实验室</a>
+        <a class="pixel-btn qr-trigger" href="#" data-qr-title="申请进入实验室" data-qr-desc="扫码添加，开始你的AI进化之路">申请进入实验室</a>
       </div>
     </div>
   </section>
@@ -247,6 +430,136 @@
   <footer class="container" style="padding:40px 0;opacity:.7">
     <span class="chip">ai798 Lab © 2025</span>
   </footer>
+
+  <!-- QR Code Modal -->
+  <div class="qr-modal" id="qrModal">
+    <div class="qr-card">
+      <div class="qr-close" id="qrClose">×</div>
+      <div class="qr-content">
+        <h3 id="qrTitle">扫码加入</h3>
+        <p id="qrDesc">扫描二维码，添加微信</p>
+        <div class="qr-image">
+          <img src="/qrcode.jpg" alt="ai798 Lab 二维码">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // QR Code Modal Logic
+    const qrModal = document.getElementById('qrModal');
+    const qrCard = document.querySelector('.qr-card');
+    const qrClose = document.getElementById('qrClose');
+    const qrTitle = document.getElementById('qrTitle');
+    const qrDesc = document.getElementById('qrDesc');
+    const qrTriggers = document.querySelectorAll('.qr-trigger');
+
+    // Position card intelligently based on viewport and trigger position
+    function positionCard(triggerElement) {
+      const isMobile = window.innerWidth <= 640;
+
+      if (isMobile) {
+        // On mobile, always center
+        qrCard.style.position = 'relative';
+        qrCard.style.top = '';
+        qrCard.style.left = '';
+        qrCard.style.right = '';
+        qrCard.style.bottom = '';
+        qrCard.style.transform = '';
+        return;
+      }
+
+      // Desktop: position based on button location
+      const rect = triggerElement.getBoundingClientRect();
+      const modalRect = qrModal.getBoundingClientRect();
+      const cardHeight = 500; // Approximate card height
+      const cardWidth = 400;
+
+      // Calculate viewport center
+      const viewportCenterY = window.innerHeight / 2;
+      const triggerCenterY = rect.top + (rect.height / 2);
+
+      // Determine vertical position
+      let top, bottom;
+      if (triggerCenterY < viewportCenterY) {
+        // Button is in upper half - show card below/center
+        top = Math.max(60, triggerCenterY - cardHeight/2);
+      } else {
+        // Button is in lower half - show card above/center
+        top = Math.min(window.innerHeight - cardHeight - 60, triggerCenterY - cardHeight/2);
+      }
+
+      // Center horizontally with some smart offset if needed
+      let left = (window.innerWidth - cardWidth) / 2;
+
+      // Ensure card stays within viewport
+      top = Math.max(40, Math.min(top, window.innerHeight - cardHeight - 40));
+      left = Math.max(20, Math.min(left, window.innerWidth - cardWidth - 20));
+
+      qrCard.style.position = 'absolute';
+      qrCard.style.top = top + 'px';
+      qrCard.style.left = left + 'px';
+      qrCard.style.right = 'auto';
+      qrCard.style.bottom = 'auto';
+      qrCard.style.margin = '0';
+      qrCard.style.transform = 'none';
+    }
+
+    // Open modal with custom content
+    qrTriggers.forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        const title = trigger.dataset.qrTitle || '扫码加入';
+        const desc = trigger.dataset.qrDesc || '扫描二维码，添加微信';
+        qrTitle.textContent = title;
+        qrDesc.textContent = desc;
+        qrModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Position card after modal is visible
+        setTimeout(() => positionCard(trigger), 10);
+      });
+    });
+
+    // Close modal
+    function closeModal() {
+      qrModal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    qrClose.addEventListener('click', closeModal);
+    qrModal.addEventListener('click', (e) => {
+      if (e.target === qrModal) closeModal();
+    });
+
+    // Close with ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && qrModal.classList.contains('active')) {
+        closeModal();
+      }
+    });
+
+    // Reposition on window resize
+    let activeButton = null;
+    qrTriggers.forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        activeButton = trigger;
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      if (qrModal.classList.contains('active') && activeButton) {
+        positionCard(activeButton);
+      }
+    });
+
+    // Prevent body scroll on iOS when modal is open
+    qrModal.addEventListener('touchmove', (e) => {
+      if (e.target === qrModal) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+  </script>
 </body>
 </html>
 
