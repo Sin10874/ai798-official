@@ -16,6 +16,10 @@
       "dest": "/site.webmanifest"
     },
     {
+      "src": "/(.*\\.(png|jpg|jpeg|gif|svg|webp|ico))",
+      "dest": "/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
