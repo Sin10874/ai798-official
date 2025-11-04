@@ -1,0 +1,17 @@
+{
+  "name": "ai798 Lab",
+  "short_name": "ai798",
+  "description": "ai798 Lab — 制造可复制的个人生产力",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#0B0B0E",
+  "background_color": "#0B0B0E",
+  "display": "standalone",
+  "start_url": "/"
+}
+

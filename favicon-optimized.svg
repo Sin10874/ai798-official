@@ -1,0 +1,11 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 深色背景 -->
+  <rect width="80" height="80" fill="#0B0B0E"/>
+  
+  <!-- 红色方块（logo核心）居中放大 -->
+  <rect x="16" y="16" width="48" height="48" fill="#EB1000" rx="2"/>
+  
+  <!-- 白色 "798" 文字 -->
+  <text x="40" y="52" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">798</text>
+</svg>
+
