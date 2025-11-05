@@ -267,6 +267,62 @@
     }
   }
 
+  /* Toast Notification */
+  .toast{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    background:var(--panel);
+    border:6px solid var(--yellow);
+    box-shadow:0 0 0 6px #000, 0 12px 0 0 #000, 0 0 40px rgba(244,194,48,0.5);
+    padding:24px 32px;
+    z-index:10000;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.3s ease;
+  }
+  .toast.active{
+    opacity:1;
+    animation:toastBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .toast-text{
+    font-family:"Press Start 2P", monospace;
+    font-size:16px;
+    color:var(--yellow);
+    text-align:center;
+    letter-spacing:1px;
+    line-height:1.8;
+    text-shadow:2px 2px 0 #000;
+  }
+
+  @keyframes toastBounce{
+    0%{transform:translate(-50%, -50%) scale(0.8)}
+    60%{transform:translate(-50%, -50%) scale(1.05)}
+    100%{transform:translate(-50%, -50%) scale(1)}
+  }
+
+  @media (max-width:640px){
+    .toast{
+      padding:20px 24px;
+      border-width:4px;
+      box-shadow:0 0 0 4px #000, 0 8px 0 0 #000, 0 0 30px rgba(244,194,48,0.5);
+    }
+    .toast-text{
+      font-size:13px;
+    }
+  }
+
+  @media (max-width:400px){
+    .toast{
+      padding:16px 20px;
+      max-width:85%;
+    }
+    .toast-text{
+      font-size:11px;
+    }
+  }
+
   /* --- Hero full screen --- */
   .hero{
     height:100vh;
@@ -376,9 +432,8 @@
         <div class="grid">
           <div>
             <p class="muted">基于实验，我们推出宠物 AI 摄影 App：把普通宠物照片，一键生成可商业使用的电影级影像。它不只是"好玩"，而是 <strong>作品质量 + 可变现能力</strong> 的证明。</p>
-            <div style="margin-top:14px;display:flex;gap:12px;flex-wrap:wrap">
-              <a class="pixel-btn" href="#">查看作品</a>
-              <a class="pixel-btn" style="background:var(--green)" href="#">下载体验</a>
+            <div style="margin-top:14px">
+              <a class="pixel-btn" style="background:var(--green)" href="#" id="downloadAppBtn">下载体验</a>
             </div>
           </div>
           <div>
@@ -445,7 +500,34 @@
     </div>
   </div>
 
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <div class="toast-text" id="toastText">Coming Soon...</div>
+  </div>
+
   <script>
+    // Toast Notification Logic
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toastText');
+
+    function showToast(message, duration = 2000) {
+      toastText.textContent = message;
+      toast.classList.add('active');
+
+      setTimeout(() => {
+        toast.classList.remove('active');
+      }, duration);
+    }
+
+    // Download App Button
+    const downloadAppBtn = document.getElementById('downloadAppBtn');
+    if (downloadAppBtn) {
+      downloadAppBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showToast('Coming Soon...');
+      });
+    }
+
     // QR Code Modal Logic
     const qrModal = document.getElementById('qrModal');
     const qrCard = document.querySelector('.qr-card');
