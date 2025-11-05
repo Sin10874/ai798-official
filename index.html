@@ -52,7 +52,9 @@
     padding:24px;
   }
   .pixel-btn{
-    display:inline-block;
+    display:inline-flex;
+    align-items:center;
+    gap:12px;
     padding:14px 18px;
     background:var(--yellow);
     color:#111;
@@ -61,12 +63,21 @@
     box-shadow:0 6px 0 #000;
     font-family:"Press Start 2P", system-ui, monospace;
     font-size:14px;
+    font-weight:bold;
     transition:transform .06s ease-in;
   }
   .pixel-btn:active{ transform: translateY(3px); box-shadow:0 3px 0 #000; }
+  .btn-icon{
+    width:32px;
+    height:32px;
+    display:block;
+    transform:translateY(3px);
+  }
 
   .chip{
-    display:inline-block;
+    display:inline-flex;
+    align-items:center;
+    gap:24px;
     padding:6px 10px;
     border:4px solid #000;
     background:#15161A;
@@ -74,6 +85,36 @@
     font-family:"Press Start 2P", system-ui, monospace;
     font-size:10px;
     letter-spacing:1px;
+  }
+  .chip-logo{
+    height:16px;
+    width:auto;
+    display:block;
+  }
+  /* Light mode - show black logo in chip */
+  @media (prefers-color-scheme: light) {
+    .chip-logo-dark {
+      display: block;
+    }
+    .chip-logo-light {
+      display: none;
+    }
+  }
+  /* Dark mode - show white logo in chip (default) */
+  @media (prefers-color-scheme: dark) {
+    .chip-logo-dark {
+      display: none;
+    }
+    .chip-logo-light {
+      display: block;
+    }
+  }
+  /* Default: show white logo */
+  .chip-logo-dark {
+    display: none;
+  }
+  .chip-logo-light {
+    display: block;
   }
 
   hr.pixel{
@@ -328,12 +369,40 @@
     height:100vh;
     display:flex;align-items:center;
   }
-  .star{
-    width:10px;height:10px;background:var(--yellow);
-    box-shadow:0 0 16px rgba(244,194,48,.8);
-    animation:pulse 1.8s infinite ease-in-out;
+  .logo-icon{
+    width:120px;
+    height:auto;
   }
-  @keyframes pulse{0%{transform:scale(.8);opacity:.5}50%{transform:scale(1.2);opacity:1}100%{transform:scale(.8);opacity:.5}}
+  .logo-icon img{
+    width:100%;
+    height:auto;
+    display:block;
+  }
+  /* Light mode - show black logo */
+  @media (prefers-color-scheme: light) {
+    .logo-icon .logo-dark {
+      display: block;
+    }
+    .logo-icon .logo-light {
+      display: none;
+    }
+  }
+  /* Dark mode - show white logo (default) */
+  @media (prefers-color-scheme: dark) {
+    .logo-icon .logo-dark {
+      display: none;
+    }
+    .logo-icon .logo-light {
+      display: block;
+    }
+  }
+  /* Default: show white logo */
+  .logo-icon .logo-dark {
+    display: none;
+  }
+  .logo-icon .logo-light {
+    display: block;
+  }
 
   .hero h1{
     font-size:40px;
@@ -368,8 +437,6 @@
   .muted{color:var(--muted)}
 
   /* Join panel */
-  .join .pixel-card{display:flex;justify-content:space-between;align-items:center;gap:18px}
-  @media (max-width:840px){ .join .pixel-card{flex-direction:column;align-items:flex-start} }
 </style>
 </head>
 <body>
@@ -379,12 +446,19 @@
     <div class="container">
       <div class="pixel-card">
         <div class="stack">
-          <div class="chip">ai798 • lab  |  前沿实验 · 生长 · 行动</div>
+          <div class="chip">
+            <img src="/favicon-white.svg" alt="ai798" class="chip-logo chip-logo-light">
+            <img src="/favicon-black.svg" alt="ai798" class="chip-logo chip-logo-dark">
+            <span>前沿实验 · 生长 · 行动</span>
+          </div>
           <div class="star"></div>
           <h1 class="pixel-h">ai798 Lab</h1>
           <p>一个面向 Z 世代的 AI 先锋组织。<br>我们不旁观未来，我们在现场制造未来。</p>
           <div class="stack" style="gap:10px">
-            <a class="pixel-btn qr-trigger" href="#" data-qr-title="加入 ai798 Lab" data-qr-desc="扫码添加，进入实验室">进入实验室 →</a>
+            <a class="pixel-btn qr-trigger" href="#" data-qr-title="加入 ai798 Lab" data-qr-desc="扫码添加，进入实验室">
+              进入实验室
+              <img src="/enter.svg" alt="→" class="btn-icon">
+            </a>
           </div>
         </div>
       </div>
@@ -433,7 +507,10 @@
           <div>
             <p class="muted">基于实验，我们推出宠物 AI 摄影 App：把普通宠物照片，一键生成可商业使用的电影级影像。它不只是"好玩"，而是 <strong>作品质量 + 可变现能力</strong> 的证明。</p>
             <div style="margin-top:14px">
-              <a class="pixel-btn" style="background:var(--green)" href="#" id="downloadAppBtn">下载体验</a>
+              <a class="pixel-btn" href="#" id="downloadAppBtn">
+                下载体验
+                <img src="/enter.svg" alt="→" class="btn-icon">
+              </a>
             </div>
           </div>
           <div>
@@ -456,7 +533,10 @@
           <div>
             <p class="muted">我们定期举办面向 <strong>零代码基础</strong> 的 AI Hackathon。每个成员都在实践中升级自己的版本——不是用记忆，而是用行动理解 AI。</p>
             <div style="margin-top:14px">
-              <a class="pixel-btn qr-trigger" href="#" data-qr-title="报名 Hackathon" data-qr-desc="扫码添加，获取下期信息">下一期报名中 →</a>
+              <a class="pixel-btn qr-trigger" href="#" data-qr-title="报名 Hackathon" data-qr-desc="扫码添加，获取下期信息">
+                下一期报名中
+                <img src="/enter.svg" alt="→" class="btn-icon">
+              </a>
             </div>
           </div>
           <div>
@@ -473,11 +553,12 @@
   <section id="join">
     <div class="container join">
       <div class="pixel-card">
-        <div>
-          <h3 class="pixel-h" style="font-size:16px;margin:0 0 10px">进入 ai798 Lab</h3>
-          <p class="muted" style="margin:0">成为新一代自我驱动的 AI 行动者。填写你的问题与现状，我们只接收对自己有要求的人。</p>
-        </div>
-        <a class="pixel-btn qr-trigger" href="#" data-qr-title="申请进入实验室" data-qr-desc="扫码添加，开始你的AI进化之路">申请进入实验室</a>
+        <h3 class="pixel-h" style="font-size:16px;margin:0 0 10px">进入 ai798 Lab</h3>
+        <p class="muted" style="margin:0 0 14px">成为新一代自我驱动的 AI 行动者。填写你的问题与现状，我们只接收对自己有要求的人。</p>
+        <a class="pixel-btn qr-trigger" href="#" data-qr-title="申请进入实验室" data-qr-desc="扫码添加，开始你的AI进化之路">
+          申请进入实验室
+          <img src="/enter.svg" alt="→" class="btn-icon">
+        </a>
       </div>
     </div>
   </section>
