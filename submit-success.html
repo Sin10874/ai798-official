@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>报名成功</title>
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0B0B0E">
+
+<!-- Pixel fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#0B0B0E;
+    --panel:#111215;
+    --stroke:#1C1D22;
+    --txt:#E7E8EA;
+    --muted:#A5A8AD;
+    --green:#3AA56A;  /* 生长绿 */
+    --yellow:#F4C230; /* 点火黄 */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--txt);
+    font-family:"VT323", monospace;
+    font-size:20px;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .pixel-h{
+    font-family:"Press Start 2P", system-ui, monospace;
+    letter-spacing:0;
+  }
+
+  /* Success page container */
+  .success-container{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:40px 20px 120px;
+    position:relative;
+  }
+
+  .success-content{
+    max-width:500px;
+    width:100%;
+    text-align:center;
+    position:relative;
+    z-index:2;
+  }
+
+  /* Title */
+  .success-title{
+    font-family:"Press Start 2P", system-ui, monospace;
+    font-size:64px;
+    color:var(--green);
+    margin:0 0 100px;
+    margin-top:0;
+    line-height:1.6;
+    text-shadow:0 0 20px rgba(58, 165, 106, 0.5);
+    animation:titlePop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes titlePop{
+    0%{transform:scale(0.8);opacity:0}
+    60%{transform:scale(1.05)}
+    100%{transform:scale(1);opacity:1}
+  }
+
+  /* QR Code wrapper */
+  .qr-wrapper{
+    display:inline-block;
+    animation:cardSlideUp 0.6s ease-out 0.3s both;
+  }
+
+  @keyframes cardSlideUp{
+    from{transform:translateY(30px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+  }
+
+  /* Pixel-style yellow border around QR */
+  .qr-border{
+    background:var(--yellow);
+    padding:8px;
+    display:inline-block;
+    position:relative;
+    box-shadow:0 4px 0 var(--yellow);
+  }
+
+  /* Pixel corners effect */
+  .qr-border:before,
+  .qr-border:after{
+    content:'';
+    position:absolute;
+    width:8px;
+    height:8px;
+    background:var(--yellow);
+  }
+  .qr-border:before{
+    top:-4px;
+    left:-4px;
+    box-shadow:
+      8px 0 0 var(--yellow),
+      0 8px 0 var(--yellow);
+  }
+  .qr-border:after{
+    bottom:-8px;
+    right:-4px;
+    box-shadow:
+      -8px 0 0 var(--yellow),
+      0 -4px 0 var(--yellow);
+  }
+
+  .qr-image{
+    background:#fff;
+    padding:16px;
+    border:4px solid #000;
+    box-shadow:0 8px 0 #000;
+    display:block;
+  }
+
+  .qr-image img{
+    display:block;
+    width:240px;
+    height:240px;
+  }
+
+  .qr-guide{
+    font-family:"VT323", monospace;
+    font-size:22px;
+    color:var(--txt);
+    margin:40px 0 0;
+    line-height:1.6;
+  }
+
+  /* Slogan */
+  .slogan{
+    font-family:"Press Start 2P", system-ui, monospace;
+    font-size:14px;
+    color:var(--muted);
+    letter-spacing:1px;
+    animation:fadeIn 0.6s ease-out 0.9s both;
+    position:fixed;
+    bottom:32px;
+    left:0;
+    right:0;
+    text-align:center;
+    z-index:10;
+    margin:0;
+    padding:0 20px;
+  }
+
+  @keyframes fadeIn{
+    from{opacity:0}
+    to{opacity:1}
+  }
+
+  /* Confetti animation */
+  .confetti-container{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:1;
+    overflow:hidden;
+  }
+
+  .confetti{
+    position:absolute;
+    width:12px;
+    height:12px;
+    background:var(--yellow);
+    animation:confettiFall 3s ease-in-out forwards;
+    opacity:0;
+  }
+
+  @keyframes confettiFall{
+    0%{
+      transform:translateY(-100px) rotate(0deg);
+      opacity:1;
+    }
+    100%{
+      transform:translateY(100vh) rotate(720deg);
+      opacity:0;
+    }
+  }
+
+  /* Pixel confetti styles */
+  .confetti.green{background:var(--green)}
+  .confetti.yellow{background:var(--yellow)}
+  .confetti.white{background:var(--txt)}
+  .confetti.muted{background:var(--muted)}
+
+  /* Tablet */
+  @media (max-width:840px){
+    .success-title{
+      font-size:56px;
+      margin:0 0 96px;
+      margin-top:0;
+    }
+    .qr-border{
+      padding:7px;
+      box-shadow:0 3px 0 var(--yellow);
+    }
+    .qr-border:after{
+      bottom:-7px;
+    }
+    .qr-image{
+      padding:14px;
+    }
+    .qr-image img{
+      width:220px;
+      height:220px;
+    }
+    .qr-guide{
+      font-size:21px;
+      margin-top:36px;
+    }
+    .slogan{
+      font-size:13px;
+      bottom:28px;
+    }
+  }
+
+  /* Mobile */
+  @media (max-width:640px){
+    .success-container{
+      padding:32px 16px 100px;
+    }
+    .success-title{
+      font-size:60px;
+      margin:0 0 92px;
+      margin-top:-90px;
+      line-height:1.8;
+    }
+    .qr-border{
+      padding:6px;
+      box-shadow:0 3px 0 var(--yellow);
+    }
+    .qr-border:before,
+    .qr-border:after{
+      width:6px;
+      height:6px;
+    }
+    .qr-border:before{
+      top:-3px;
+      left:-3px;
+      box-shadow:
+        6px 0 0 var(--yellow),
+        0 6px 0 var(--yellow);
+    }
+    .qr-border:after{
+      bottom:-6px;
+      right:-3px;
+      box-shadow:
+        -6px 0 0 var(--yellow),
+        0 -3px 0 var(--yellow);
+    }
+    .qr-image{
+      padding:12px;
+      border-width:3px;
+      box-shadow:0 6px 0 #000;
+    }
+    .qr-image img{
+      width:200px;
+      height:200px;
+    }
+    .qr-guide{
+      font-size:19px;
+      margin-top:32px;
+    }
+    .slogan{
+      font-size:11px;
+      bottom:24px;
+    }
+    .confetti{
+      width:10px;
+      height:10px;
+    }
+  }
+
+  /* Small mobile */
+  @media (max-width:400px){
+    .success-title{
+      font-size:48px;
+      margin:0 0 88px;
+      margin-top:-90px;
+    }
+    .qr-border{
+      padding:5px;
+      box-shadow:0 2px 0 var(--yellow);
+    }
+    .qr-border:before,
+    .qr-border:after{
+      width:5px;
+      height:5px;
+    }
+    .qr-border:before{
+      top:-2px;
+      left:-2px;
+      box-shadow:
+        5px 0 0 var(--yellow),
+        0 5px 0 var(--yellow);
+    }
+    .qr-border:after{
+      bottom:-5px;
+      right:-2px;
+      box-shadow:
+        -5px 0 0 var(--yellow),
+        0 -2px 0 var(--yellow);
+    }
+    .qr-image{
+      padding:10px;
+    }
+    .qr-image img{
+      width:180px;
+      height:180px;
+    }
+    .qr-guide{
+      font-size:18px;
+      margin-top:28px;
+    }
+    .slogan{
+      font-size:10px;
+      bottom:20px;
+    }
+    .confetti{
+      width:8px;
+      height:8px;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Confetti container -->
+  <div class="confetti-container" id="confettiContainer"></div>
+
+  <!-- Success content -->
+  <div class="success-container">
+    <div class="success-content">
+      <h1 class="success-title">报名成功！</h1>
+
+      <div class="qr-wrapper">
+        <div class="qr-border">
+          <div class="qr-image">
+            <img src="./qrcode_for_gh.jpg" alt="ai798 Lab 实战营小助手二维码">
+          </div>
+        </div>
+        <p class="qr-guide">请扫描二维码添加实战营小助手</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slogan fixed at bottom -->
+  <p class="slogan">To Infinity | AI798 Lab</p>
+
+  <script>
+    // Pixel confetti animation
+    function createConfetti() {
+      const container = document.getElementById('confettiContainer');
+      const colors = ['green', 'yellow', 'white', 'muted'];
+      const confettiCount = window.innerWidth < 640 ? 40 : 60; // Fewer on mobile
+
+      for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = `confetti ${colors[Math.floor(Math.random() * colors.length)]}`;
+
+        // Random horizontal position
+        confetti.style.left = Math.random() * 100 + '%';
+
+        // Random animation delay (stagger the fall)
+        confetti.style.animationDelay = Math.random() * 0.5 + 's';
+
+        // Random animation duration (vary the speed)
+        confetti.style.animationDuration = (Math.random() * 1 + 2.5) + 's';
+
+        // Random horizontal drift
+        const drift = (Math.random() - 0.5) * 200;
+        confetti.style.setProperty('--drift', drift + 'px');
+
+        container.appendChild(confetti);
+      }
+
+      // Clean up confetti after animation
+      setTimeout(() => {
+        container.innerHTML = '';
+      }, 4000);
+    }
+
+    // Trigger confetti on page load
+    window.addEventListener('load', () => {
+      setTimeout(createConfetti, 200);
+    });
+
+    // Prevent accidental back navigation on mobile
+    let touchStartY = 0;
+    document.addEventListener('touchstart', (e) => {
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+      const touchY = e.touches[0].clientY;
+      const touchDiff = touchY - touchStartY;
+
+      // Prevent pull-to-refresh
+      if (touchDiff > 0 && window.scrollY === 0) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+  </script>
+</body>
+</html>
