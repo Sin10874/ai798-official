@@ -1,5 +1,17 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/course-calendar",
+      "destination": "/14daycoursecalendar.html",
+      "permanent": false
+    },
+    {
+      "source": "/14d-course-calendar",
+      "destination": "/14daycoursecalendar.html",
+      "permanent": false
+    }
+  ]
 }
 
