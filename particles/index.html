@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 粒子系统 - ai798 Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;500;700&display=swap" rel="stylesheet">
+    <!-- Three.js from CDN -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <style>
+        :root {
+            --primary-color: #00f3ff;
+            --bg-color: #050510;
+            --panel-bg: rgba(10, 10, 20, 0.75);
+            --border-color: rgba(0, 243, 255, 0.3);
+            --text-color: #e0e0e0;
+            --hover-bg: rgba(0, 243, 255, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        #video {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 160px;
+            height: 120px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            opacity: 0.8;
+            transform: scaleX(-1);
+            z-index: 10;
+            display: none;
+        }
+
+        .hud-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            background: 
+                linear-gradient(90deg, rgba(0,243,255,0.03) 1px, transparent 1px) 0 0 / 100px 100px,
+                linear-gradient(0deg, rgba(0,243,255,0.03) 1px, transparent 1px) 0 0 / 100px 100px;
+        }
+
+        .control-panel {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            width: 300px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 24px;
+            z-index: 100;
+            pointer-events: auto;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            clip-path: polygon(
+                0 0, 
+                100% 0, 
+                100% calc(100% - 20px), 
+                calc(100% - 20px) 100%, 
+                0 100%
+            );
+        }
+
+        .control-panel.hidden {
+            transform: translateX(-150%);
+            opacity: 0;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 12px;
+        }
+
+        .control-panel h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+
+        .control-group {
+            margin-bottom: 24px;
+        }
+
+        .control-group label {
+            display: block;
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .model-btn {
+            padding: 10px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            border-radius: 2px;
+        }
+
+        .model-btn:hover {
+            background: var(--hover-bg);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+
+        .model-btn.active {
+            background: rgba(0, 243, 255, 0.2);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 2px;
+        }
+
+        #colorPicker {
+            width: 40px;
+            height: 25px;
+            border: none;
+            cursor: pointer;
+            background: transparent;
+            margin-right: 12px;
+        }
+
+        .color-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            cursor: pointer;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .action-btn:hover {
+            background: rgba(0, 243, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        .gesture-info {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 40px;
+            z-index: 100;
+        }
+
+        .gesture-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .gesture-icon {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+            font-size: 18px;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #050510;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 0.5s;
+        }
+
+        .loader {
+            width: 150px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loader::after {
+            content: '';
+            position: absolute;
+            left: -50%;
+            width: 50%;
+            height: 100%;
+            background: var(--primary-color);
+            animation: loading 1.5s infinite ease-in-out;
+        }
+
+        @keyframes loading {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+
+        .corner {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary-color);
+            z-index: 90;
+            opacity: 0.5;
+        }
+        .top-left { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+        .top-right { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+        .bottom-left { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+        .bottom-right { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+
+    </style>
+</head>
+<body>
+    <div class="hud-overlay"></div>
+    <div class="corner top-left"></div>
+    <div class="corner top-right"></div>
+    <div class="corner bottom-left"></div>
+    <div class="corner bottom-right"></div>
+
+    <div id="canvas-container"></div>
+    <video id="video" autoplay playsinline></video>
+
+    <div class="control-panel">
+        <div class="panel-header">
+            <h2>SYSTEM CONTROL</h2>
+            <div style="width: 8px; height: 8px; background: var(--primary-color); border-radius: 50%; box-shadow: 0 0 10px var(--primary-color);"></div>
+        </div>
+
+        <div class="control-group">
+            <label>Model Select</label>
+            <div class="model-grid">
+                <button class="model-btn active" data-model="heart">Heart</button>
+                <button class="model-btn" data-model="butterfly">Butterfly</button>
+                <button class="model-btn" data-model="saturn">Galaxy</button>
+                <button class="model-btn" data-model="water">Water</button>
+                <button class="model-btn" data-model="firework">Firework</button>
+                <button class="model-btn" data-model="cat">Cat</button>
+                <button class="model-btn" data-model="cloud">Cloud</button>
+                <button class="model-btn" data-model="doraemon">Robot</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Particle Color</label>
+            <div class="color-picker-wrapper">
+                <input type="color" id="colorPicker" value="#00f3ff">
+                <span class="color-label">CUSTOMIZE</span>
+            </div>
+        </div>
+
+        <button class="action-btn" id="fullscreenBtn">TOGGLE FULLSCREEN</button>
+    </div>
+
+    <div class="gesture-info">
+        <div class="gesture-item">
+            <div class="gesture-icon">✋</div>
+            <span>Spread</span>
+        </div>
+        <div class="gesture-item">
+            <div class="gesture-icon">✊</div>
+            <span>Gather</span>
+        </div>
+    </div>
+
+    <div class="loading-screen" id="loading">
+        <div class="loader"></div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
