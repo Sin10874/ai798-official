@@ -1,31 +1,16 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/favicon\\.(svg|ico|png)",
-      "dest": "/favicon.$1"
-    },
-    {
-      "src": "/site\\.webmanifest",
-      "dest": "/site.webmanifest"
-    },
-    {
-      "src": "/particles/(.*)",
-      "dest": "/particles/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/particles",
+      "destination": "/particles/index.html"
+    },
+    {
+      "source": "/particles/",
+      "destination": "/particles/index.html"
+    }
+  ],
   "redirects": [
     {
       "source": "/course-calendar",
@@ -35,11 +20,6 @@
     {
       "source": "/14d-course-calendar",
       "destination": "/14daycoursecalendar.html",
-      "permanent": false
-    },
-    {
-      "source": "/particles",
-      "destination": "/particles/index.html",
       "permanent": false
     }
   ]
