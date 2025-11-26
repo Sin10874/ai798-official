@@ -1,7 +1,16 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js';
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+// MediaPipe 从全局变量获取（通过 script 标签加载）
+const Hands = window.Hands;
+const Camera = window.Camera;
+
+// MediaPipe 加载状态（仅在开发时输出一次）
+if (!Hands || !Camera) {
+    console.error('MediaPipe failed to load! Hands:', !!Hands, 'Camera:', !!Camera);
+}
 
 // ====== 粒子模型生成器 ======
 class ParticleModelGenerator {
@@ -450,7 +459,14 @@ class ParticleSystem {
         this.targetScale = 1.2;
         this.currentScale = 1.2;
         this.targetRotation = new THREE.Euler(0, 0, 0);
+        this.currentRotation = new THREE.Euler(0, 0, 0);
         this.isHandDetected = false;
+        
+        // 平滑处理参数
+        this.smoothedHandData = null;
+        this.handSmoothFactor = 0.4; // 手部数据平滑系数（越大越跟手，越小越平滑）
+        this.scaleSmoothFactor = 0.08; // 缩放平滑系数
+        this.rotationSmoothFactor = 0.15; // 旋转平滑系数
 
         this.init();
         this.setupHandTracking();
@@ -570,8 +586,8 @@ class ParticleSystem {
     }
 
     updateParticleScale() {
-        // 平滑过渡 (增加阻尼，更平滑)
-        this.currentScale += (this.targetScale - this.currentScale) * 0.05;
+        // 使用可配置的平滑系数，更丝滑的过渡
+        this.currentScale += (this.targetScale - this.currentScale) * this.scaleSmoothFactor;
 
         if (this.particles) {
             this.particles.scale.set(this.currentScale, this.currentScale, this.currentScale);
@@ -613,25 +629,29 @@ class ParticleSystem {
         }
 
         try {
+            if (!Hands || !Camera) {
+                console.error('MediaPipe not loaded!');
+                hideLoading();
+                return;
+            }
+            
             // MediaPipe Hands 初始化
-            const { Hands: HandsClass } = await import('https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js');
-            this.hands = new HandsClass({
+            this.hands = new Hands({
                 locateFile: (file) => {
+                    // 使用 jsdelivr CDN 加载模型文件
                     return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`;
                 }
             });
 
             this.hands.setOptions({
                 maxNumHands: 1,
-                modelComplexity: 1,
-                minDetectionConfidence: 0.5,
-                minTrackingConfidence: 0.5
+                modelComplexity: 0, // 0=Lite模型，更快更流畅
+                minDetectionConfidence: 0.6,
+                minTrackingConfidence: 0.6
             });
 
             this.hands.onResults((results) => this.onHandsResults(results));
 
-            const cameraModule = await import('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1620248357/camera_utils.js');
-            const Camera = cameraModule.Camera;
             const camera = new Camera(videoElement, {
                 onFrame: async () => {
                     try {
@@ -646,7 +666,7 @@ class ParticleSystem {
 
             // 启动摄像头
             camera.start().then(() => {
-                console.log('MediaPipe camera started successfully');
+                console.log('✅ Hand tracking active');
                 hideLoading();
             }).catch((err) => {
                 console.warn('MediaPipe camera failed to start:', err);
@@ -659,10 +679,30 @@ class ParticleSystem {
         }
     }
 
+    // 平滑手部关键点数据
+    smoothHandData(rawHand) {
+        if (!this.smoothedHandData) {
+            // 首次初始化
+            this.smoothedHandData = rawHand.map(p => ({ x: p.x, y: p.y, z: p.z }));
+            return this.smoothedHandData;
+        }
+        
+        const factor = this.handSmoothFactor;
+        for (let i = 0; i < rawHand.length; i++) {
+            this.smoothedHandData[i].x += (rawHand[i].x - this.smoothedHandData[i].x) * factor;
+            this.smoothedHandData[i].y += (rawHand[i].y - this.smoothedHandData[i].y) * factor;
+            this.smoothedHandData[i].z += (rawHand[i].z - this.smoothedHandData[i].z) * factor;
+        }
+        
+        return this.smoothedHandData;
+    }
+
     onHandsResults(results) {
         if (results.multiHandLandmarks && results.multiHandLandmarks.length >= 1) {
             this.isHandDetected = true;
-            const hand = results.multiHandLandmarks[0];
+            
+            // 平滑处理手部数据，减少抖动
+            const hand = this.smoothHandData(results.multiHandLandmarks[0]);
 
             // 算法优化：计算所有指尖到手掌中心的平均距离
             // 手掌中心估算：(0号点手腕 + 9号点中指根部) / 2
@@ -784,12 +824,11 @@ class ParticleSystem {
         // 旋转粒子系统
         if (this.particles) {
             if (this.isHandDetected) {
-                // 手势控制模式：平滑插值到目标旋转
-                // 使用 lerp 平滑过渡
-                const lerpFactor = 0.1;
-                this.particles.rotation.x += (this.targetRotation.x - this.particles.rotation.x) * lerpFactor;
-                this.particles.rotation.y += (this.targetRotation.y - this.particles.rotation.y) * lerpFactor;
-                this.particles.rotation.z += (this.targetRotation.z - this.particles.rotation.z) * lerpFactor;
+                // 手势控制模式：使用更丝滑的插值
+                const factor = this.rotationSmoothFactor;
+                this.particles.rotation.x += (this.targetRotation.x - this.particles.rotation.x) * factor;
+                this.particles.rotation.y += (this.targetRotation.y - this.particles.rotation.y) * factor;
+                this.particles.rotation.z += (this.targetRotation.z - this.particles.rotation.z) * factor;
             } else {
                 // 自动旋转模式
                 this.particles.rotation.y += 0.001; // 更优雅的慢速旋转
