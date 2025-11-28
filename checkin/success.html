@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打卡成功 - 训练营</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Confetti JS -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        .success-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .success-title {
+            font-family: inherit;
+            font-weight: 700;
+            color: var(--yellow);
+            margin-bottom: 20px;
+            font-size: 24px;
+            line-height: 1.5;
+        }
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 300px;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container success-container">
+        <div class="success-icon">🎉</div>
+        <h1 class="success-title">打卡成功!</h1>
+        <p class="pixel-h" style="color: var(--txt); font-size: 16px;">今日任务已完成，继续保持！</p>
+        <div style="margin-top: 20px; margin-bottom: 10px;">
+            <span class="pixel-h" style="color: var(--muted); font-size: 14px;">已累计打卡 </span>
+            <span id="checkinDays" class="pixel-h" style="color: var(--yellow); font-size: 24px; font-weight: bold;">0</span>
+            <span class="pixel-h" style="color: var(--muted); font-size: 14px;"> 天</span>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="/checkin/history" class="pixel-btn" style="background: var(--yellow); color: var(--bg); justify-content: center;">
+                查看打卡回顾墙 <span style="margin-left: 8px;">→</span>
+            </a>
+            <a href="/" class="pixel-btn" style="background: var(--panel); color: var(--txt); justify-content: center;">
+                返回首页
+            </a>
+        </div>
+    </div>
+
+    <script src="supabase.js"></script>
+    <script src="app.js"></script> <!-- 复用 app.js 中的一些工具函数 -->
+    <script src="particles-bg.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 获取并显示累计打卡天数
+            try {
+                const checkinDaysEl = document.getElementById('checkinDays');
+                if (!checkinDaysEl) return;
+                
+                // 优先从 URL 参数获取天数
+                const urlParams = new URLSearchParams(window.location.search);
+                const daysFromUrl = urlParams.get('days');
+                
+                if (daysFromUrl) {
+                    // 如果 URL 中有天数参数，直接使用
+                    checkinDaysEl.textContent = daysFromUrl;
+                } else {
+                    // 否则查询数据库
+                    const user = getCurrentUser();
+                    if (user && user.userId) {
+                        const checkinCount = await getUserCheckinCount(user.userId);
+                        checkinDaysEl.textContent = checkinCount;
+                    }
+                }
+            } catch (error) {
+                console.error('获取打卡天数失败:', error);
+            }
+            
+
+            // 检查是否需要撒花
+            // 逻辑：
+            // 1. 如果 URL 带有 ?new=true，说明是刚提交完，必须撒花
+            // 2. 如果是今日首次访问此页面（即使不是刚提交），也撒花？
+            //    用户需求："当日首次进入打卡成功页面，都会展示一个撒花特效"
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const isNewCheckin = urlParams.get('new') === 'true';
+            
+            // 使用 app.js 里的 getBJDateString 确保和打卡逻辑时间一致
+            const todayStr = typeof getBJDateString === 'function' ? getBJDateString() : new Date().toISOString().split('T')[0];
+            const storageKey = 'ai798_confetti_shown_' + todayStr;
+            const hasShown = localStorage.getItem(storageKey);
+
+            if (isNewCheckin || !hasShown) {
+                launchConfetti();
+                localStorage.setItem(storageKey, 'true');
+            }
+
+            function launchConfetti() {
+                var duration = 3000;
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+                var random = function(min, max) {
+                  return Math.random() * (max - min) + min;
+                };
+
+                var interval = setInterval(function() {
+                  var timeLeft = animationEnd - Date.now();
+
+                  if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                  }
+
+                  var particleCount = 50 * (timeLeft / duration);
+                  // since particles fall down, start a bit higher than random
+                  confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } }));
+                  confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } }));
+                }, 250);
+            }
+        });
+    </script>
+</body>
+</html>

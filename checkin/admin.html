@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>监控面板</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .main-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 左侧面板 - 打卡详情 */
+        .detail-panel {
+            width: 0;
+            overflow-y: auto;
+            background: var(--panel);
+            border-right: 2px solid var(--stroke);
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        
+        .detail-panel.open {
+            width: 400px;
+        }
+        
+        .detail-content {
+            padding: 20px;
+            display: none;
+        }
+        
+        .detail-panel.open .detail-content {
+            display: block;
+        }
+        
+        .close-detail {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .detail-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--stroke);
+        }
+        
+        .detail-header h3 {
+            margin: 0 0 10px 0;
+            color: var(--primary);
+            font-size: 18px;
+        }
+        
+        .detail-meta {
+            font-size: 14px;
+            color: var(--muted);
+        }
+        
+        .detail-answer {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+            color: var(--txt);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .detail-image {
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        /* 右侧主要区域 - 表格 */
+        .table-container {
+            flex: 1;
+            overflow: auto;
+            padding: 20px;
+        }
+        
+        .header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--stroke);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 24px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+        
+        /* 表格样式 */
+        .checkin-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--panel);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .checkin-table th {
+            background: var(--primary);
+            color: white;
+            padding: 12px 10px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--stroke);
+            white-space: nowrap;
+        }
+        
+        .checkin-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid var(--stroke);
+            font-size: 12px;
+            color: var(--txt);
+        }
+        
+        .checkin-table tbody tr:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .user-phone {
+            color: var(--muted);
+            font-size: 11px;
+        }
+        
+        .checked-badge {
+            display: inline-block;
+            background: var(--success-color);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .checked-badge:hover {
+            background: var(--green);
+            transform: scale(1.05);
+        }
+        
+        .empty-cell {
+            color: var(--muted);
+            font-size: 11px;
+        }
+        
+        /* 固定列 */
+        .checkin-table th:nth-child(1),
+        .checkin-table td:nth-child(1) {
+            position: sticky;
+            left: 0;
+            background: var(--panel);
+            z-index: 10;
+        }
+        
+        .checkin-table th:nth-child(1) {
+            background: var(--primary);
+            z-index: 20;
+        }
+        
+        .checkin-table th:nth-child(2),
+        .checkin-table td:nth-child(2) {
+            position: sticky;
+            left: 100px;
+            background: var(--panel);
+            z-index: 10;
+        }
+        
+        .checkin-table th:nth-child(2) {
+            background: var(--primary);
+            z-index: 20;
+        }
+        
+        .checkin-table th:nth-child(3),
+        .checkin-table td:nth-child(3) {
+            position: sticky;
+            left: 220px;
+            background: var(--panel);
+            z-index: 10;
+        }
+        
+        .checkin-table th:nth-child(3) {
+            background: var(--primary);
+            z-index: 20;
+        }
+
+        /* 详情页新样式 - 复用打卡回顾的样式 */
+        .feed-section {
+            margin-bottom: 24px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--stroke);
+        }
+        
+        .section-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .section-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--txt);
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+        }
+        
+        /* 图片网格布局 */
+        .feed-images {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        /* 默认3列布局 (用于3, 5, 6+ 张图) */
+        .feed-images.grid-multi {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        /* 1张图：限制最大宽度，保持比例 */
+        .feed-images.grid-1 {
+            grid-template-columns: 1fr 1fr; /* 占2/3宽度 */
+        }
+        
+        /* 2张图：对半开 */
+        .feed-images.grid-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .feed-img {
+            width: 100%;
+            aspect-ratio: 1; /* 正方形裁剪 */
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #000;
+            border: 1px solid var(--stroke);
+            transition: transform 0.2s;
+        }
+        
+        .feed-img:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- 左侧打卡详情面板 -->
+        <div id="detailPanel" class="detail-panel">
+            <button class="close-detail" onclick="closeDetail()">✕ 关闭</button>
+            <div class="detail-content">
+                <div class="detail-header">
+                    <h3 id="detailUserName">-</h3>
+                    <div class="detail-meta">
+                        <div>📱 <span id="detailPhone">-</span></div>
+                        <div>📅 <span id="detailDate">-</span></div>
+                        <div>⏰ <span id="detailTime">-</span></div>
+                    </div>
+        </div>
+            <div>
+                    <h4 style="margin-top: 0; color: var(--txt); font-size: 14px;">打卡内容：</h4>
+                    <div id="detailAnswer" class="detail-answer">-</div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <h4 style="margin: 0 0 10px 0; color: var(--txt); font-size: 14px;">打卡图片：</h4>
+                    <div id="detailImageContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧表格区域 -->
+        <div class="table-container">
+            <div class="header">
+                <h1>📊 监控面板</h1>
+            </div>
+            
+            <div id="tableContent" class="loading">
+                正在加载数据...
+            </div>
+        </div>
+    </div>
+
+    <script src="supabase.js"></script>
+    <script>
+        let allUsers = [];
+        let allCheckins = [];
+        let dates = [];
+        
+        // 加载数据
+        async function loadData() {
+            try {
+                // 获取所有用户
+                const { data: users, error: usersError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .order('name');
+                
+                if (usersError) throw usersError;
+                allUsers = users || [];
+                
+                // 获取所有打卡记录
+                const { data: checkins, error: checkinsError } = await supabase
+                    .from('checkins')
+                    .select('*')
+                    .order('date', { ascending: false });
+                
+                if (checkinsError) throw checkinsError;
+                allCheckins = checkins || [];
+                
+                // 提取所有唯一日期并排序
+                const dateSet = new Set();
+                allCheckins.forEach(c => dateSet.add(c.date));
+                dates = Array.from(dateSet).sort((a, b) => new Date(b) - new Date(a));
+                
+                // 渲染表格
+                renderTable();
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                document.getElementById('tableContent').innerHTML = 
+                    '<div style="color: var(--danger-color);">加载失败: ' + error.message + '</div>';
+            }
+        }
+        
+        // 渲染表格
+        function renderTable() {
+            if (allUsers.length === 0) {
+                document.getElementById('tableContent').innerHTML = 
+                    '<div class="loading">暂无用户数据</div>';
+                return;
+            }
+            
+            // 如果没有打卡记录，至少显示最近7天
+            if (dates.length === 0) {
+                const today = new Date();
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(today);
+                    d.setDate(d.getDate() - i);
+                    dates.push(d.toISOString().split('T')[0]);
+                }
+            }
+            
+            // 构建表格HTML
+            let html = '<table class="checkin-table">';
+            
+            // 表头
+            html += '<thead><tr>';
+            html += '<th style="width: 100px;">姓名</th>';
+            html += '<th style="width: 120px;">电话</th>';
+            html += '<th style="width: 100px;">累计打卡</th>';
+            dates.forEach(date => {
+                const d = new Date(date);
+                const month = d.getMonth() + 1;
+                const day = d.getDate();
+                html += `<th style="min-width: 80px;">${month}月${day}日</th>`;
+            });
+            html += '</tr></thead>';
+            
+            // 表格内容
+            html += '<tbody>';
+            allUsers.forEach(user => {
+                // 计算该用户的累计打卡天数
+                const totalCheckins = allCheckins.filter(c => c.user_id === user.id).length;
+                
+                html += '<tr>';
+                html += `<td class="user-name">${user.name}</td>`;
+                html += `<td class="user-phone">${user.phone}</td>`;
+                html += `<td style="font-weight: 600; color: var(--primary);">${totalCheckins} 天</td>`;
+                
+                dates.forEach(date => {
+                    const checkin = allCheckins.find(
+                        c => c.user_id === user.id && c.date === date
+                    );
+                    
+                    if (checkin) {
+                        html += `<td><span class="checked-badge" onclick="showDetail('${checkin.id}')">已打卡</span></td>`;
+                    } else {
+                        html += `<td class="empty-cell">-</td>`;
+                    }
+                });
+                
+                html += '</tr>';
+            });
+            html += '</tbody>';
+            html += '</table>';
+            
+            document.getElementById('tableContent').innerHTML = html;
+        }
+        
+        // 显示打卡详情
+        function showDetail(checkinId) {
+            const checkin = allCheckins.find(c => c.id === checkinId);
+            if (!checkin) return;
+            
+            // 填充详情头信息
+            document.getElementById('detailUserName').textContent = checkin.user_name || '-';
+            document.getElementById('detailPhone').textContent = checkin.user_phone || '-';
+            document.getElementById('detailDate').textContent = checkin.date || '-';
+            
+            // 格式化时间
+            const time = new Date(checkin.created_at);
+            document.getElementById('detailTime').textContent = 
+                time.toLocaleString('zh-CN', { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit',
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+            
+            // 使用新的渲染函数展示内容
+            const html = renderDetailContent(checkin.answer, checkin.image_url);
+            
+            // 将原来的两个容器合并使用，或者只用一个
+            // 为了简单，我们清空旧的 answer 容器并填充新内容，隐藏旧的 image 容器
+            const answerContainer = document.getElementById('detailAnswer');
+            
+            // 移除旧的样式类，避免冲突
+            answerContainer.className = ''; 
+            answerContainer.style.background = 'transparent';
+            answerContainer.style.padding = '0';
+            answerContainer.innerHTML = html;
+            
+            // 隐藏旧的图片容器（因为现在图片整合在文字里了）
+            // 注意：我们需要处理一下HTML结构，因为原来的结构是分开的
+            // 最好的办法是重写 detail-content 的结构，但为了最小修改，我们动态调整
+            
+            // 隐藏原来独立的图片容器区域
+            const imgContainerParent = document.getElementById('detailImageContainer').parentElement;
+            if (imgContainerParent) {
+                imgContainerParent.style.display = 'none';
+            }
+            
+            // 打开面板
+            document.getElementById('detailPanel').classList.add('open');
+        }
+
+        // 辅助函数：渲染详细内容（复用 app.js 的逻辑）
+        function renderDetailContent(answerStr, imageStr) {
+            let html = '';
+            let data = { insight: '', confusion: '', plan: '' };
+            let images = { insight: [], confusion: [] };
+            
+            // 解析 Answer
+            try {
+                const parsed = JSON.parse(answerStr);
+                if (parsed && typeof parsed === 'object') {
+                    data = parsed;
+                } else {
+                    data.insight = answerStr; // 旧数据兼容
+                }
+            } catch (e) {
+                data.insight = answerStr;
+            }
+
+            // 解析 Images
+            try {
+                const imgData = JSON.parse(imageStr);
+                if (imgData && !Array.isArray(imgData) && typeof imgData === 'object') {
+                    images = imgData;
+                } else if (Array.isArray(imgData)) {
+                    images.insight = imgData; // 旧数据兼容
+                }
+            } catch (e) {
+                if (imageStr && typeof imageStr === 'string' && imageStr.includes('http')) {
+                    images.insight = imageStr.split(';');
+                }
+            }
+
+            // 生成 HTML
+            
+            // 1. 今日心得
+            if (data.insight || (images.insight && images.insight.length > 0)) {
+                html += `<div class="feed-section">
+                    <div class="section-label">✨ 今日心得 (Insight)</div>
+                    ${data.insight ? `<div class="section-text">${data.insight.replace(/\n/g, '<br>')}</div>` : ''}
+                    ${renderImageGrid(images.insight)}
+                </div>`;
+            }
+
+            // 2. 学习困惑
+            if (data.confusion || (images.confusion && images.confusion.length > 0)) {
+                html += `<div class="feed-section">
+                    <div class="section-label">🤔 学习困惑 (Confusion)</div>
+                    ${data.confusion ? `<div class="section-text">${data.confusion.replace(/\n/g, '<br>')}</div>` : ''}
+                    ${renderImageGrid(images.confusion)}
+                </div>`;
+            }
+
+            // 3. 明日计划
+            if (data.plan) {
+                html += `<div class="feed-section">
+                    <div class="section-label">📅 明日计划 (Plan)</div>
+                    <div class="section-text">${data.plan.replace(/\n/g, '<br>')}</div>
+                </div>`;
+            }
+
+            if (!html) html = `<div style="color: var(--muted); padding: 20px; text-align: center;">暂无内容</div>`;
+
+            return html;
+        }
+
+        // 辅助函数：生成图片网格
+        function renderImageGrid(urls) {
+            if (!urls || urls.length === 0) return '';
+            
+            let gridClass = 'grid-multi'; // 默认3列
+            if (urls.length === 1) gridClass = 'grid-1'; // 1张图
+            if (urls.length === 2) gridClass = 'grid-2'; // 2张图
+            if (urls.length === 4) gridClass = 'grid-2'; // 4张图
+            
+            return `<div class="feed-images ${gridClass}">
+                ${urls.map(url => `
+                    <img src="${url}" 
+                         class="feed-img" 
+                         loading="lazy" 
+                         onclick="window.open(this.src)"
+                         onerror="this.style.display='none'">
+                `).join('')}
+            </div>`;
+        }
+        
+        // 关闭详情面板
+        function closeDetail() {
+            document.getElementById('detailPanel').classList.remove('open');
+        }
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
+    </script>
+</body>
+</html>

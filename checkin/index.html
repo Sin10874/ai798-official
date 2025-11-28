@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打卡系统 - 训练营</title>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0B0B0E;
+            color: #E7E8EA;
+            font-family: "VT323", monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .loading {
+            text-align: center;
+            font-size: 20px;
+        }
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">正在加载</div>
+    
+    <script src="supabase.js"></script>
+    <script>
+        // 认证逻辑 (复用 app.js 中的部分)
+        const AUTH_KEY = 'ai798_auth';
+        
+        // 获取北京时间日期字符串
+        function getBJDateString() {
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const bjMs = utc + (3600000 * 8);
+            const date = new Date(bjMs);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // 检查今日是否已打卡
+        async function checkTodayCheckin(userId, date) {
+            const { data, error } = await supabase
+                .from('checkins')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('checkin_date', date)
+                .maybeSingle();
+            
+            if (error && error.code !== 'PGRST116') {
+                console.error('检查打卡状态失败:', error);
+                return null;
+            }
+            
+            return data;
+        }
+        
+        // 获取当前用户
+        function getCurrentUser() {
+            const sessionStr = localStorage.getItem(AUTH_KEY);
+            if (!sessionStr) return null;
+            
+            const session = JSON.parse(sessionStr);
+            
+            // 检查是否过期
+            if (Date.now() > session.expiry) {
+                localStorage.removeItem(AUTH_KEY);
+                return null;
+            }
+            
+            return session;
+        }
+        
+        // 智能路由逻辑
+        async function smartRoute() {
+            try {
+                const user = getCurrentUser();
+                
+                // 1. 未登录 -> 登录页
+                if (!user) {
+                    window.location.replace('/checkin/login');
+                    return;
+                }
+                
+                // 2. 已登录 -> 检查今日是否已打卡
+                const todayStr = getBJDateString();
+                const existingCheckin = await checkTodayCheckin(user.userId, todayStr);
+                
+                if (existingCheckin) {
+                    // 3. 已打卡 -> 成功页
+                    window.location.replace('/checkin/success');
+                } else {
+                    // 4. 未打卡 -> 打卡表单页
+                    window.location.replace('/checkin/checkin');
+                }
+            } catch (error) {
+                console.error('路由错误:', error);
+                // 出错时默认跳转到登录页
+                window.location.replace('/checkin/login');
+            }
+        }
+        
+        // 页面加载后执行智能路由
+        window.addEventListener('DOMContentLoaded', smartRoute);
+    </script>
+</body>
+</html>
+

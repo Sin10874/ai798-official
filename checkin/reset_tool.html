@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试数据重置工具</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.js"></script>
+    <style>
+        .container {
+            max-width: 500px;
+            margin-top: 50px;
+            text-align: center;
+        }
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+            border: 1px solid var(--danger-color);
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        .status-log {
+            margin-top: 20px;
+            text-align: left;
+            background: #000;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            min-height: 100px;
+            color: #333;
+        }
+        .log-line { color: var(--muted); margin-bottom: 4px; }
+        .log-success { color: var(--success-color); }
+        .log-error { color: var(--danger-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="pixel-card">
+            <h1 style="margin-bottom: 20px; color: var(--txt);">🚧 测试重置工具</h1>
+            
+            <div style="margin-bottom: 20px;">
+                <p style="color: var(--muted); font-size: 14px; margin-bottom: 10px;">前端状态清理</p>
+                <button id="clearLocalBtn" class="pixel-btn full-width">
+                    1. 清除本地登陆缓存
+                </button>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <p style="color: var(--muted); font-size: 14px; margin-bottom: 10px;">后端数据清理 (慎用)</p>
+                <button id="clearCheckinsBtn" class="pixel-btn btn-danger full-width">
+                    2. 清空所有打卡记录 (checkins表)
+                </button>
+            </div>
+
+            <div style="border-top: 1px solid var(--stroke); padding-top: 20px; margin-top: 20px;">
+                 <a href="/checkin/login" class="pixel-btn" style="background: var(--panel); color: var(--txt); width: 100%; justify-content: center;">
+                    返回登陆页
+                </a>
+            </div>
+        </div>
+
+        <div id="logBox" class="status-log">
+            <div class="log-line">准备就绪...</div>
+        </div>
+    </div>
+
+    <script src="supabase.js"></script>
+    <script>
+        // 日志工具
+        function log(msg, type = 'normal') {
+            const box = document.getElementById('logBox');
+            const div = document.createElement('div');
+            div.className = 'log-line';
+            if (type === 'success') div.classList.add('log-success');
+            if (type === 'error') div.classList.add('log-error');
+            div.textContent = `> ${msg}`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // 1. 清除本地缓存
+        document.getElementById('clearLocalBtn').addEventListener('click', () => {
+            try {
+                const key = 'ai798_auth'; // 对应 app.js 里的 AUTH_KEY
+                // 也可以直接清除所有
+                localStorage.clear();
+                log('本地 localStorage 已清空', 'success');
+                log('登陆状态已重置');
+            } catch (e) {
+                log('清除本地缓存失败: ' + e.message, 'error');
+            }
+        });
+
+        // 2. 清空数据库打卡记录
+        document.getElementById('clearCheckinsBtn').addEventListener('click', async () => {
+            if (!confirm('确定要删除数据库中所有的打卡记录吗？此操作不可恢复！')) return;
+
+            try {
+                log('正在连接 Supabase 删除数据...');
+                
+                // 注意：Supabase JS 客户端删除所有行需要特定的过滤条件
+                // 这里我们使用 checkins 表的主键 id 不为空作为条件
+                const { data, error } = await supabase
+                    .from('checkins')
+                    .delete()
+                    .neq('id', '00000000-0000-0000-0000-000000000000'); // 删除所有 ID 不为 0 的记录（实际上是所有）
+
+                if (error) {
+                    throw error;
+                }
+
+                log('checkins 表数据已清空', 'success');
+            } catch (e) {
+                console.error(e);
+                log('删除数据库数据失败: ' + e.message, 'error');
+                log('提示：请检查 Supabase RLS 策略是否允许删除操作', 'error');
+            }
+        });
+
+        // 自动执行一次本地清理（可选，方便用户一进来就重置）
+        // localStorage.clear();
+        // log('已自动清除本地缓存');
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>训练营打卡 - 登陆</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.js"></script>
+</head>
+<body>
+    <div class="container login-container">
+        <div class="pixel-card" style="width: 100%; max-width: 480px;">
+            <h1 class="pixel-h" style="text-align: center; margin-bottom: 1rem; color: var(--green);">训练营打卡</h1>
+            <p class="subtitle" style="text-align: center;">请输入您的手机号</p>
+            
+            <form id="loginForm" style="margin-top: 2rem;">
+                <div class="form-group">
+                    <label for="phone" class="pixel-h" style="font-size: 12px; margin-bottom: 8px;">手机号</label>
+                    <input type="tel" id="phone" name="phone" class="pixel-input" placeholder="请输入报名手机号" required>
+                </div>
+
+                <div id="errorMessage" class="error-message pixel-h"></div>
+                
+                <button type="submit" class="pixel-btn full-width" style="justify-content: center;">
+                    进入打卡
+                    <span style="font-size: 1.2em;">→</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    <script src="supabase.js"></script>
+    <script src="app.js"></script>
+    <script src="particles-bg.js"></script>
+    <script>
+        // 页面特定的初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginState(false); // 如果已经登陆，直接跳转
+            initLoginPage();
+        });
+    </script>
+</body>
+</html>

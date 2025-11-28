@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日打卡 - 训练营</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <span class="pixel-h" style="font-size: 14px;">👋 <span id="userName">学员</span></span>
+            <button id="logoutBtn" class="btn-text pixel-h" style="font-size: 12px;">[退出]</button>
+        </div>
+    </nav>
+
+    <div class="container" style="padding-top: 20px;">
+        <!-- 状态提示区 -->
+        <div id="statusAlert" class="alert pixel-card" style="display: none; background: var(--bg); padding: 15px; border-color: var(--yellow);"></div>
+
+        <!-- 题目区域 (如果有特定题目，可以在这里显示，现在主要显示日期) -->
+        <div class="pixel-card question-card" style="margin-bottom: 2rem;">
+            <div class="date-header" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">
+                <span id="currentDate" class="pixel-h" style="color: var(--yellow); font-size: 18px;">加载中...</span>
+                <span class="badge pixel-h" id="checkinStatusBadge">未打卡</span>
+            </div>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--stroke); text-align: center;">
+                <span class="pixel-h" style="color: var(--muted); font-size: 14px;">已累计打卡 </span>
+                <span id="checkinDays" class="pixel-h" style="color: var(--green); font-size: 20px; font-weight: bold;">0</span>
+                <span class="pixel-h" style="color: var(--muted); font-size: 14px;"> 天</span>
+            </div>
+        </div>
+
+        <!-- 打卡表单 -->
+        <form id="checkinForm" class="pixel-card">
+            
+            <!-- 1. 今日心得 -->
+            <div class="form-group">
+                <label class="pixel-h">1. 今日心得</label>
+                <div class="post-box">
+                    <textarea id="insightText" class="post-editor" placeholder="分享今天的学习感悟..." rows="4"></textarea>
+                    <div class="upload-section" id="insightUploadSection">
+                        <div class="image-grid" id="insightGrid">
+                            <!-- 上传按钮 -->
+                            <div class="upload-btn-box" id="insightUploadBtn">
+                                <div class="upload-icon">+</div>
+                                <div class="upload-text">上传图片</div>
+                            </div>
+                        </div>
+                        <input type="file" id="insightInput" accept="image/*" multiple hidden>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 学习困惑 -->
+            <div class="form-group">
+                <label class="pixel-h">2. 学习困惑</label>
+                <div class="post-box">
+                    <textarea id="confusionText" class="post-editor" placeholder="遇到什么困难了吗？..." rows="4"></textarea>
+                    <div class="upload-section" id="confusionUploadSection">
+                        <div class="image-grid" id="confusionGrid">
+                            <!-- 上传按钮 -->
+                            <div class="upload-btn-box" id="confusionUploadBtn">
+                                <div class="upload-icon">+</div>
+                                <div class="upload-text">上传图片</div>
+                            </div>
+                        </div>
+                        <input type="file" id="confusionInput" accept="image/*" multiple hidden>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 明日计划 -->
+            <div class="form-group">
+                <label class="pixel-h">3. 明日计划</label>
+                <div class="post-box">
+                    <textarea id="planText" class="post-editor" placeholder="明天准备学什么？..." rows="3"></textarea>
+                    <!-- 此处无图片上传 -->
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="pixel-btn full-width" style="justify-content: center; margin-top: 20px;">发布打卡</button>
+        </form>
+
+        <!-- 底部跳转按钮 (移除了管理员面板) -->
+        <div style="text-align: center; margin-top: 30px; margin-bottom: 40px;">
+            <a href="/checkin/history" class="pixel-btn" style="background: var(--panel); color: var(--txt); width: 100%; justify-content: center;">
+                查看打卡回顾墙 <span style="margin-left: 8px;">→</span>
+            </a>
+        </div>
+    </div>
+
+    <script src="supabase.js"></script>
+    <script src="app.js"></script>
+    <script src="particles-bg.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginState(true); // 需要登陆验证
+            initCheckinPage();
+        });
+    </script>
+</body>
+</html>

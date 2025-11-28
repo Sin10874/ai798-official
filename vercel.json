@@ -14,12 +14,12 @@
   "redirects": [
     {
       "source": "/course-calendar",
-      "destination": "/14daycoursecalendar.html",
+      "destination": "/14daycoursecalendar",
       "permanent": false
     },
     {
       "source": "/14d-course-calendar",
-      "destination": "/14daycoursecalendar.html",
+      "destination": "/14daycoursecalendar",
       "permanent": false
     }
   ]

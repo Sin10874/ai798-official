@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel 数据转换工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #0B0B0E;
+            color: #E7E8EA;
+        }
+        h1 { color: #3AA56A; }
+        .section {
+            background: #111215;
+            border: 4px solid #000;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 10px;
+            background: #000;
+            color: #3AA56A;
+            border: 2px solid #333;
+        }
+        button {
+            background: #F4C230;
+            color: #111;
+            border: 4px solid #000;
+            padding: 10px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            color: #3AA56A;
+            border: 2px solid #333;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { color: #3AA56A; }
+        .error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>📊 Excel 数据转换工具</h1>
+    <p>将你的 Excel 文件转换为 Supabase SQL 语句</p>
+
+    <div class="section">
+        <h2>1. 上传名单 Excel</h2>
+        <input type="file" id="usersFile" accept=".xlsx,.xls">
+        <p style="color: #A5A8AD; font-size: 14px;">
+            * 假设第1列=姓名，第2列=手机号<br>
+            * 口令将统一设置为 "111111"（稍后可在 SQL 中修改）
+        </p>
+        <div id="usersStatus"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. 上传打卡任务 Excel</h2>
+        <input type="file" id="tasksFile" accept=".xlsx,.xls">
+        <p style="color: #A5A8AD; font-size: 14px;">
+            * 假设第1列=日期，第2列=题目内容
+        </p>
+        <div id="tasksStatus"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. 生成 SQL</h2>
+        <button onclick="generateSQL()">生成 SQL 语句</button>
+        <button onclick="copySQL()">复制到剪贴板</button>
+        <button onclick="downloadSQL()">下载 seed.sql</button>
+        <textarea id="sqlOutput" placeholder="SQL 语句将在这里显示..."></textarea>
+    </div>
+
+    <script>
+        let usersData = [];
+        let tasksData = [];
+
+        // 处理名单文件
+        document.getElementById('usersFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                    
+                    usersData = jsonData.slice(1).filter(row => row[0] && row[1]); // 跳过表头，过滤空行
+                    document.getElementById('usersStatus').innerHTML = 
+                        `<p class="success">✓ 成功读取 ${usersData.length} 条用户数据</p>`;
+                } catch (err) {
+                    document.getElementById('usersStatus').innerHTML = 
+                        `<p class="error">✗ 读取失败: ${err.message}</p>`;
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        });
+
+        // 处理任务文件
+        document.getElementById('tasksFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                    
+                    tasksData = jsonData.slice(1).filter(row => row[0] && row[1]); // 跳过表头
+                    document.getElementById('tasksStatus').innerHTML = 
+                        `<p class="success">✓ 成功读取 ${tasksData.length} 条任务数据</p>`;
+                } catch (err) {
+                    document.getElementById('tasksStatus').innerHTML = 
+                        `<p class="error">✗ 读取失败: ${err.message}</p>`;
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        });
+
+        function generateSQL() {
+            let sql = [];
+            
+            // 生成用户 SQL
+            sql.push('-- 用户数据');
+            usersData.forEach(row => {
+                const name = String(row[0]).trim().replace(/'/g, "''");
+                const phone = String(row[1]).trim();
+                const token = "111111"; // 默认口令
+                
+                sql.push(`INSERT INTO public.users (name, phone, token) VALUES ('${name}', '${phone}', '${token}') ON CONFLICT (phone) DO NOTHING;`);
+            });
+            
+            sql.push('\n-- 任务数据');
+            tasksData.forEach(row => {
+                let dateVal = row[0];
+                const content = String(row[1]).trim().replace(/'/g, "''");
+                
+                // 处理日期格式
+                if (typeof dateVal === 'number') {
+                    // Excel 日期是从 1900-01-01 开始的天数
+                    const date = XLSX.SSF.parse_date_code(dateVal);
+                    dateVal = `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`;
+                } else if (dateVal instanceof Date) {
+                    dateVal = dateVal.toISOString().split('T')[0];
+                } else {
+                    dateVal = String(dateVal).split(' ')[0];
+                }
+                
+                sql.push(`INSERT INTO public.questions (date, content) VALUES ('${dateVal}', '${content}') ON CONFLICT (date) DO UPDATE SET content = EXCLUDED.content;`);
+            });
+            
+            document.getElementById('sqlOutput').value = sql.join('\n');
+        }
+
+        function copySQL() {
+            const textarea = document.getElementById('sqlOutput');
+            textarea.select();
+            document.execCommand('copy');
+            alert('已复制到剪贴板！');
+        }
+
+        function downloadSQL() {
+            const sql = document.getElementById('sqlOutput').value;
+            const blob = new Blob([sql], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'seed.sql';
+            a.click();
+        }
+    </script>
+</body>
+</html>
